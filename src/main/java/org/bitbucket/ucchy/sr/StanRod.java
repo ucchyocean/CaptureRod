@@ -26,13 +26,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BlockIterator;
@@ -45,6 +46,8 @@ public class StanRod extends JavaPlugin implements Listener {
 
     private static final String NAME = "stanrod";
     private static final String DISPLAY_NAME = NAME;
+
+    protected static final String PROTECT_FALL_META_NAME = "stanrodfallprotect";
 
     protected static StanRod instance;
 
@@ -249,9 +252,6 @@ public class StanRod extends JavaPlugin implements Listener {
                 return;
             }
 
-            // フックにメタデータを入れる
-            hook.setMetadata(NAME, new FixedMetadataValue(this, true));
-
             // 対象をスタンさせる
             LivingEntity le;
             if ( target instanceof LivingEntity ) {
@@ -266,6 +266,20 @@ public class StanRod extends JavaPlugin implements Listener {
             hook.getWorld().playEffect(hook.getLocation(), Effect.POTION_BREAK, 21);
             hook.getWorld().playEffect(hook.getLocation(), Effect.POTION_BREAK, 21);
 
+        }
+    }
+
+    /**
+     * エンティティがダメージを受けたときのイベント
+     * @param event
+     */
+    @EventHandler
+    public void onDamage(EntityDamageEvent event) {
+
+        // 落下ダメージで、ダメージ保護用のメタデータを持っているなら、ダメージから保護する
+        if ( event.getCause() == DamageCause.FALL &&
+                event.getEntity().hasMetadata(PROTECT_FALL_META_NAME) ) {
+            event.setCancelled(true);
         }
     }
 

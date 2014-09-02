@@ -9,9 +9,11 @@ import org.bukkit.Effect;
 import org.bukkit.entity.Fish;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 /**
  * 対象エンティティに、スタンエフェクトを与え続けるタスク
@@ -54,6 +56,9 @@ public class StanEffectTask extends BukkitRunnable {
 
         // エフェクトを与える
         applyEffect();
+
+        // 釣り竿の方向にひっぱる
+        setVelocityTowardOwner();
     }
 
     /**
@@ -66,6 +71,10 @@ public class StanEffectTask extends BukkitRunnable {
             runTaskTimer(plugin, 0, 3);
             running = true;
         }
+
+        // 対象に、落下ダメージ保護用のマークを入れる
+        le.setMetadata(StanRod.PROTECT_FALL_META_NAME,
+                new FixedMetadataValue(plugin, true));
     }
 
     /**
@@ -77,6 +86,8 @@ public class StanEffectTask extends BukkitRunnable {
         running = false;
         if ( le != null && !le.isDead() ) {
             removeEffect();
+            le.getWorld().playEffect(le.getLocation(), Effect.STEP_SOUND, 10);
+            le.getWorld().playEffect(le.getLocation(), Effect.STEP_SOUND, 10);
         }
     }
 
@@ -107,10 +118,27 @@ public class StanEffectTask extends BukkitRunnable {
         le.removePotionEffect(PotionEffectType.SLOW);
         le.removePotionEffect(PotionEffectType.JUMP);
 
-        // エフェクト
-        if ( !hook.isDead() ) {
-            hook.getWorld().playEffect(hook.getLocation(), Effect.STEP_SOUND, 10);
-            hook.getWorld().playEffect(hook.getLocation(), Effect.STEP_SOUND, 10);
+        // 落下保護を除去する
+        le.removeMetadata(StanRod.PROTECT_FALL_META_NAME, plugin);
+    }
+
+    /**
+     * 釣り竿の方向にひっぱる力を与える
+     */
+    private void setVelocityTowardOwner() {
+
+        // 距離に応じて、飛び出す力を算出する
+        double distance = owner.getEyeLocation().distance(le.getLocation());
+        double power = 0;
+        if ( distance > 3.0 ) {
+            power = (distance - 3.0) / 5.0;
         }
+
+        // 飛び出す方向を算出する
+        Vector vector = owner.getEyeLocation().subtract(le.getLocation())
+                .toVector().normalize().multiply(power);
+
+        // 飛翔
+        le.setVelocity(vector);
     }
 }
