@@ -1,0 +1,12 @@
+# ${project.name} v${project.version}
+# @author     ucchy
+# @license    LGPLv3
+# @copyright  Copyright ucchy 2014
+
+# ワイヤーの長さを設定します。
+# 例えば8にした場合、8マス先までの相手をクリックして捕まえることができますが、
+# 9マス以上先は捕まえることができません。
+wireRange: 8
+
+# StanRodのクラフト可/不可を切り替えます。
+enableCraft: true

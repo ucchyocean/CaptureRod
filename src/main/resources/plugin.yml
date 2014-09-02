@@ -1,0 +1,40 @@
+name: ${project.name}
+main: org.bitbucket.ucchy.sr.StanRod
+version: ${project.version}
+author: ucchy
+description: ${project.description}
+softdepend: [ColorTeaming]
+commands:
+  stanrod:
+    description: ${project.description}
+    aliases: [sr]
+    usage: |
+           /<command> get [level] - Get new StanRod.
+           /<command> give (player) [level] - Give new StanRod.
+           /<command> reload - Reload config.yml.
+    permission: stanrod.command
+    permission-message: You don't have permission "<permission>".
+permissions:
+  stanrod.command:
+    description: StanRod command permission.
+    default: true
+  stanrod.reload:
+    description: StanRod reload command permission.
+    default: op
+  stanrod.get:
+    description: StanRod get command permission.
+    default: true
+  stanrod.give:
+    description: StanRod give command permission.
+    default: op
+  stanrod.action:
+    description: StanRod action permission.
+    default: true
+  stanrod.*:
+    children:
+      stanrod.command: true
+      stanrod.reload: true
+      stanrod.get: true
+      stanrod.give: true
+      stanrod.action: true
+    description: All of StanRod permission.
