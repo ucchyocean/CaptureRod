@@ -8,7 +8,7 @@ softdepend: [ColorTeaming]
 commands:
   capturerod:
     description: ${project.description}
-    aliases: [capture,cr]
+    aliases: [cap]
     usage: |
            /<command> get [level] - Get new CaptureRod.
            /<command> give (player) [level] - Give new CaptureRod.
