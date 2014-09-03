@@ -1,40 +1,42 @@
 name: ${project.name}
-main: org.bitbucket.ucchy.sr.StanRod
+main: org.bitbucket.ucchy.cr.CaptureRod
 version: ${project.version}
 author: ucchy
 description: ${project.description}
 softdepend: [ColorTeaming]
+
 commands:
-  stanrod:
+  capturerod:
     description: ${project.description}
-    aliases: [sr]
+    aliases: [capture,cr]
     usage: |
-           /<command> get [level] - Get new StanRod.
-           /<command> give (player) [level] - Give new StanRod.
+           /<command> get [level] - Get new CaptureRod.
+           /<command> give (player) [level] - Give new CaptureRod.
            /<command> reload - Reload config.yml.
-    permission: stanrod.command
+    permission: capturerod.command
     permission-message: You don't have permission "<permission>".
+
 permissions:
-  stanrod.command:
-    description: StanRod command permission.
+  capturerod.command:
+    description: CaptureRod command permission.
     default: true
-  stanrod.reload:
-    description: StanRod reload command permission.
+  capturerod.reload:
+    description: CaptureRod reload command permission.
     default: op
-  stanrod.get:
-    description: StanRod get command permission.
-    default: true
-  stanrod.give:
-    description: StanRod give command permission.
+  capturerod.get:
+    description: CaptureRod get command permission.
     default: op
-  stanrod.action:
-    description: StanRod action permission.
+  capturerod.give:
+    description: CaptureRod give command permission.
+    default: op
+  capturerod.action:
+    description: CaptureRod action permission.
     default: true
-  stanrod.*:
+  capturerod.*:
     children:
-      stanrod.command: true
-      stanrod.reload: true
-      stanrod.get: true
-      stanrod.give: true
-      stanrod.action: true
-    description: All of StanRod permission.
+      capturerod.command: true
+      capturerod.reload: true
+      capturerod.get: true
+      capturerod.give: true
+      capturerod.action: true
+    description: All of CaptureRod permission.

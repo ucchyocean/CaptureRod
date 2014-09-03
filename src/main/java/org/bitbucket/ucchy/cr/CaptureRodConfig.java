@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package org.bitbucket.ucchy.sr;
+package org.bitbucket.ucchy.cr;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,21 +20,23 @@ import java.util.zip.ZipEntry;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
- * スタンロッドのコンフィグクラス
+ * キャプチャロッドのコンフィグクラス
  * @author ucchy
  */
-public class StanRodConfig {
+public class CaptureRodConfig {
 
-    private StanRod parent;
+    private CaptureRod parent;
 
-    private int wireRange;
+    private int captureRange;
     private boolean enableCraft;
+    private double wireLength;
+    private double wireTension;
 
     /**
      * コンストラクタ
      * @param parent
      */
-    public StanRodConfig(StanRod parent) {
+    public CaptureRodConfig(CaptureRod parent) {
         this.parent = parent;
         reloadConfig();
     }
@@ -57,9 +59,13 @@ public class StanRodConfig {
         parent.reloadConfig();
         FileConfiguration conf = parent.getConfig();
 
-        wireRange = conf.getInt("wireRange", 8);
+        captureRange = conf.getInt("captureRange", 8);
 
         enableCraft = conf.getBoolean("enableCraft", true);
+
+        wireLength = conf.getDouble("wireLength", 3.0);
+
+        wireTension = conf.getDouble("wireTension", 5.0);
     }
 
     /**
@@ -150,10 +156,10 @@ public class StanRodConfig {
     }
 
     /**
-     * @return wireRange
+     * @return captureRange
      */
-    public int getWireRange() {
-        return wireRange;
+    public int getCaptureRange() {
+        return captureRange;
     }
 
     /**
@@ -161,5 +167,19 @@ public class StanRodConfig {
      */
     public boolean isEnableCraft() {
         return enableCraft;
+    }
+
+    /**
+     * @return wireLength
+     */
+    public double getWireLength() {
+        return wireLength;
+    }
+
+    /**
+     * @return wireTension
+     */
+    public double getWireTension() {
+        return wireTension;
     }
 }

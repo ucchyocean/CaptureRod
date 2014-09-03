@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package org.bitbucket.ucchy.sr;
+package org.bitbucket.ucchy.cr;
 
 import org.bukkit.Effect;
 import org.bukkit.entity.Fish;
@@ -21,7 +21,7 @@ import org.bukkit.util.Vector;
  */
 public class StanEffectTask extends BukkitRunnable {
 
-    private StanRod plugin;
+    private CaptureRod plugin;
     private Fish hook;
     private LivingEntity le;
     private Player owner;
@@ -34,7 +34,7 @@ public class StanEffectTask extends BukkitRunnable {
      * @param le
      * @param owner
      */
-    public StanEffectTask(StanRod plugin, Fish hook, LivingEntity le, Player owner) {
+    public StanEffectTask(CaptureRod plugin, Fish hook, LivingEntity le, Player owner) {
         this.plugin = plugin;
         this.hook = hook;
         this.le = le;
@@ -72,8 +72,8 @@ public class StanEffectTask extends BukkitRunnable {
             running = true;
         }
 
-        // 対象に、落下ダメージ保護用のマークを入れる
-        le.setMetadata(StanRod.PROTECT_FALL_META_NAME,
+        // 対象にメタデータを入れる
+        le.setMetadata(CaptureRod.STAN_META_NAME,
                 new FixedMetadataValue(plugin, true));
     }
 
@@ -118,8 +118,9 @@ public class StanEffectTask extends BukkitRunnable {
         le.removePotionEffect(PotionEffectType.SLOW);
         le.removePotionEffect(PotionEffectType.JUMP);
 
-        // 落下保護を除去する
-        le.removeMetadata(StanRod.PROTECT_FALL_META_NAME, plugin);
+        // メタデータを除去する
+        le.removeMetadata(CaptureRod.STAN_META_NAME, plugin);
+        le.setFallDistance(0);
     }
 
     /**
@@ -129,16 +130,19 @@ public class StanEffectTask extends BukkitRunnable {
 
         // 距離に応じて、飛び出す力を算出する
         double distance = owner.getEyeLocation().distance(le.getLocation());
-        double power = 0;
-        if ( distance > 3.0 ) {
-            power = (distance - 3.0) / 5.0;
+        double wireLength = plugin.getCaptureRodConfig().getWireLength();
+        double wireTension = plugin.getCaptureRodConfig().getWireTension();
+
+        if ( distance > wireLength ) {
+
+            double power = (distance - wireLength) / wireTension;
+
+            // 飛び出す方向を算出する
+            Vector vector = owner.getEyeLocation().subtract(le.getLocation())
+                    .toVector().normalize().multiply(power);
+
+            // 飛翔
+            le.setVelocity(vector);
         }
-
-        // 飛び出す方向を算出する
-        Vector vector = owner.getEyeLocation().subtract(le.getLocation())
-                .toVector().normalize().multiply(power);
-
-        // 飛翔
-        le.setVelocity(vector);
     }
 }

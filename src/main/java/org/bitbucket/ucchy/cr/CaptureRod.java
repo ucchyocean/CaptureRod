@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package org.bitbucket.ucchy.sr;
+package org.bitbucket.ucchy.cr;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -17,8 +17,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.ComplexEntityPart;
-import org.bukkit.entity.ComplexLivingEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fish;
@@ -30,6 +28,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -39,38 +38,35 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BlockIterator;
 
 /**
- * スタンロッド
+ * キャプチャロッド
  * @author ucchy
  */
-public class StanRod extends JavaPlugin implements Listener {
+public class CaptureRod extends JavaPlugin implements Listener {
 
-    private static final String NAME = "stanrod";
+    private static final String NAME = "capturerod";
     private static final String DISPLAY_NAME = NAME;
+    private static final String PERMISSION = NAME + ".";
 
-    protected static final String PROTECT_FALL_META_NAME = "stanrodfallprotect";
-
-    protected static StanRod instance;
+    protected static final String STAN_META_NAME = "capturerodstan";
 
     private ItemStack item;
-    private StanRodConfig config;
+    private CaptureRodConfig config;
     private ShapedRecipe recipe;
 
     /**
      * プラグインが有効になったときに呼び出されるメソッド
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
      */
-    public void onEnable(){
+    public void onEnable() {
 
-        instance = this;
-
-        config = new StanRodConfig(this);
+        config = new CaptureRodConfig(this);
 
         getServer().getPluginManager().registerEvents(this, this);
 
         item = new ItemStack(Material.FISHING_ROD, 1);
-        ItemMeta wirerodMeta = item.getItemMeta();
-        wirerodMeta.setDisplayName(DISPLAY_NAME);
-        item.setItemMeta(wirerodMeta);
+        ItemMeta capturerodMeta = item.getItemMeta();
+        capturerodMeta.setDisplayName(DISPLAY_NAME);
+        item.setItemMeta(capturerodMeta);
 
         if ( config.isEnableCraft() ) {
             makeRecipe();
@@ -98,10 +94,11 @@ public class StanRod extends JavaPlugin implements Listener {
      */
     private void makeRecipe() {
 
-        recipe = new ShapedRecipe(getStanRod());
-        recipe.shape("  I", " IS", "I S");
+        recipe = new ShapedRecipe(getRod());
+        recipe.shape("  I", " IS", "I B");
         recipe.setIngredient('I', Material.IRON_INGOT);
         recipe.setIngredient('S', Material.STRING);
+        recipe.setIngredient('B', Material.SLIME_BALL);
         getServer().addRecipe(recipe);
     }
 
@@ -139,9 +136,9 @@ public class StanRod extends JavaPlugin implements Listener {
 
         if (args[0].equalsIgnoreCase("reload")) {
 
-            if (!sender.hasPermission("stanrod.reload")) {
+            if (!sender.hasPermission(PERMISSION + "reload")) {
                 sender.sendMessage(ChatColor.RED
-                        + "You don't have permission \"stanrod.reload\".");
+                        + "You don't have permission \"" + PERMISSION + "reload\".");
                 return true;
             }
 
@@ -154,33 +151,33 @@ public class StanRod extends JavaPlugin implements Listener {
                 removeRecipe();
             }
 
-            sender.sendMessage(ChatColor.GREEN + "StanRod configuration was reloaded!");
+            sender.sendMessage(ChatColor.GREEN + NAME + " configuration was reloaded!");
 
             return true;
 
         } else if (args[0].equalsIgnoreCase("get")) {
 
             if ( !(sender instanceof Player) ) {
-                sender.sendMessage(ChatColor.RED + "This command can only use in game.");
+                sender.sendMessage(ChatColor.RED + "This command can be used only in game.");
                 return true;
             }
 
-            if (!sender.hasPermission("stanrod.get")) {
+            if (!sender.hasPermission(PERMISSION + "get")) {
                 sender.sendMessage(ChatColor.RED
-                        + "You don't have permission \"stanrod.get\".");
+                        + "You don't have permission \"" + PERMISSION + "get\".");
                 return true;
             }
 
             Player player = (Player)sender;
-            giveWirerod(player);
+            giveRod(player);
 
             return true;
 
         } else if ( args.length >= 2 && args[0].equalsIgnoreCase("give") ) {
 
-            if (!sender.hasPermission("stanrod.give")) {
+            if (!sender.hasPermission(PERMISSION + "give")) {
                 sender.sendMessage(ChatColor.RED
-                        + "You don't have permission \"stanrod.give\".");
+                        + "You don't have permission \"" + PERMISSION + "give\".");
                 return true;
             }
 
@@ -190,7 +187,7 @@ public class StanRod extends JavaPlugin implements Listener {
                 return true;
             }
 
-            giveWirerod(player);
+            giveRod(player);
 
             return true;
         }
@@ -199,19 +196,19 @@ public class StanRod extends JavaPlugin implements Listener {
     }
 
     /**
-     * StanRodを複製して取得する
+     * ロッドを複製して取得する
      */
-    private ItemStack getStanRod() {
+    private ItemStack getRod() {
         return this.item.clone();
     }
 
     /**
-     * 指定したプレイヤーにStanRodを与える
+     * 指定したプレイヤーにロッドを与える
      * @param player プレイヤー
      */
-    private void giveWirerod(Player player) {
+    private void giveRod(Player player) {
 
-        ItemStack rod = getStanRod();
+        ItemStack rod = getRod();
         ItemStack temp = player.getItemInHand();
         player.setItemInHand(rod);
         if ( temp != null ) {
@@ -220,7 +217,7 @@ public class StanRod extends JavaPlugin implements Listener {
     }
 
     /**
-     * StanRodの針を投げたり、針がかかったときに呼び出されるメソッド
+     * ロッドの針を投げたときに呼び出されるメソッド
      * @param event
      */
     @EventHandler
@@ -230,9 +227,9 @@ public class StanRod extends JavaPlugin implements Listener {
         final Fish hook = event.getHook();
 
         // パーミッションが無いなら何もしない
-        if ( !player.hasPermission("stanrod.action") ) return;
+        if ( !player.hasPermission(PERMISSION + "action") ) return;
 
-        // 手に持っているアイテムがWireRodでないなら何もしない
+        // 手に持っているアイテムがロッドでないなら、何もしない
         ItemStack rod = player.getItemInHand();
         if ( rod == null ||
                 rod.getType() == Material.AIR ||
@@ -245,7 +242,7 @@ public class StanRod extends JavaPlugin implements Listener {
             // 針を投げるときの処理
 
             // 向いている方向のLivingEntityを取得し、その中にフックをワープさせる
-            Entity target = hookTargetLivingEntity(player, hook, config.getWireRange());
+            LivingEntity target = hookTargetLivingEntity(player, hook, config.getCaptureRange());
             if ( target == null ) {
                 player.sendMessage(ChatColor.RED + "target not found!!");
                 event.setCancelled(true);
@@ -253,13 +250,7 @@ public class StanRod extends JavaPlugin implements Listener {
             }
 
             // 対象をスタンさせる
-            LivingEntity le;
-            if ( target instanceof LivingEntity ) {
-                le = (LivingEntity)target;
-            } else {
-                le = (ComplexLivingEntity)((ComplexEntityPart)target).getParent();
-            }
-            StanEffectTask task = new StanEffectTask(this, hook, le, player);
+            StanEffectTask task = new StanEffectTask(this, hook, target, player);
             task.startTask();
 
             // エフェクト
@@ -278,8 +269,22 @@ public class StanRod extends JavaPlugin implements Listener {
 
         // 落下ダメージで、ダメージ保護用のメタデータを持っているなら、ダメージから保護する
         if ( event.getCause() == DamageCause.FALL &&
-                event.getEntity().hasMetadata(PROTECT_FALL_META_NAME) ) {
+                event.getEntity().hasMetadata(STAN_META_NAME) ) {
             event.setCancelled(true);
+        }
+    }
+
+    /**
+     * プレイヤーがクリックした時のイベント
+     * @param event
+     */
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+
+        // スタンしているプレイヤーは、何もできないようにする
+        if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
+            event.setCancelled(true);
+            return;
         }
     }
 
@@ -289,24 +294,20 @@ public class StanRod extends JavaPlugin implements Listener {
      * @param player プレイヤー
      * @param hook 釣り針
      * @param size 取得する最大距離、140以上を指定しないこと
-     * @return プレイヤーが向いている方向にあるEntityまたはComplexLivingEntity。
-     * 取得できない場合はnullがかえされる
+     * @return プレイヤーが向いている方向にあるLivingEntity。
+     *         取得できない場合はnullがかえされる。
      */
-    private static Entity hookTargetLivingEntity(Player player, Fish hook, int range) {
+    private static LivingEntity hookTargetLivingEntity(Player player, Fish hook, int range) {
 
         // ターゲット先周辺のエンティティを取得する
         Location center = player.getLocation().clone();
         double halfrange = (double)range / 2.0;
         center.add(center.getDirection().multiply(halfrange));
         Entity orb = center.getWorld().spawnEntity(center, EntityType.EXPERIENCE_ORB);
-        ArrayList<Entity> targets = new ArrayList<Entity>();
+        ArrayList<LivingEntity> targets = new ArrayList<LivingEntity>();
         for ( Entity e : orb.getNearbyEntities(halfrange, halfrange, halfrange) ) {
             if ( e instanceof LivingEntity && !player.equals(e) ) {
-                targets.add(e);
-            } else if ( e instanceof ComplexLivingEntity ) {
-                for ( ComplexEntityPart part : ((ComplexLivingEntity)e).getParts() ) {
-                    targets.add(part);
-                }
+                targets.add((LivingEntity)e);
             }
         }
         orb.remove();
@@ -323,19 +324,15 @@ public class StanRod extends JavaPlugin implements Listener {
 
             } else {
                 // 位置が一致するLivingEntityがないか探す
-                for ( Entity e : targets ) {
-                    Location location = e.getLocation();
-                    if ( block.getLocation().distanceSquared(e.getLocation()) <= 4.0 ) {
+                for ( LivingEntity le : targets ) {
+                    Location location = le.getLocation();
+                    if ( block.getLocation().distanceSquared(le.getLocation()) <= 4.0 ) {
                         // LivingEntityが見つかった、針を載せる
                         hook.teleport(location);
-                        e.setPassenger(hook);
-                        if ( e instanceof LivingEntity ) {
-                            ((LivingEntity)e).damage(0F, player);
-                        } else if ( e instanceof ComplexEntityPart ) {
-                            ((ComplexEntityPart)e).getParent().damage(0F, player);
-                        }
+                        le.setPassenger(hook);
+                        le.damage(0F, player);
                         // 見つかったLivingEntityを返す
-                        return e;
+                        return le;
                     }
                 }
             }
@@ -408,7 +405,14 @@ public class StanRod extends JavaPlugin implements Listener {
      * @return
      */
     protected File getJarFile() {
-        return instance.getFile();
+        return getFile();
     }
 
+    /**
+     * このプラグインのコンフィグファイルを返す
+     * @return
+     */
+    protected CaptureRodConfig getCaptureRodConfig() {
+        return config;
+    }
 }

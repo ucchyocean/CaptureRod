@@ -12,7 +12,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <files>
     <file>
-      <source>target/StanRod.jar</source>
+      <source>target/CaptureRod.jar</source>
     </file>
   </files>
 

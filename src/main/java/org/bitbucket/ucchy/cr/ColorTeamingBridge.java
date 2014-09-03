@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2013
  */
-package org.bitbucket.ucchy.sr;
+package org.bitbucket.ucchy.cr;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
