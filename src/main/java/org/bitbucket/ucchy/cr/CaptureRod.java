@@ -14,6 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -247,6 +248,20 @@ public class CaptureRod extends JavaPlugin implements Listener {
                 player.sendMessage(ChatColor.RED + "target not found!!");
                 event.setCancelled(true);
                 return;
+            }
+
+            // 耐久度を消耗させる
+            if ( config.getDurabilityCost() > 0 ) {
+                short durability = rod.getDurability();
+                durability += config.getDurabilityCost();
+                if ( durability >= rod.getType().getMaxDurability() ) {
+                    player.setItemInHand(null);
+                    updateInventory(player);
+                    player.getWorld().playSound(
+                            player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                } else {
+                    rod.setDurability(durability);
+                }
             }
 
             // 対象をスタンさせる

@@ -31,6 +31,7 @@ public class CaptureRodConfig {
     private boolean enableCraft;
     private double wireLength;
     private double wireTension;
+    private int durabilityCost;
 
     /**
      * コンストラクタ
@@ -66,6 +67,11 @@ public class CaptureRodConfig {
         wireLength = conf.getDouble("wireLength", 3.0);
 
         wireTension = conf.getDouble("wireTension", 5.0);
+
+        durabilityCost = conf.getInt("durabilityCost", 2);
+        if ( durabilityCost < 0 ) {
+            durabilityCost = 0;
+        }
     }
 
     /**
@@ -181,5 +187,12 @@ public class CaptureRodConfig {
      */
     public double getWireTension() {
         return wireTension;
+    }
+
+    /**
+     * @return durabilityCost
+     */
+    public int getDurabilityCost() {
+        return durabilityCost;
     }
 }
