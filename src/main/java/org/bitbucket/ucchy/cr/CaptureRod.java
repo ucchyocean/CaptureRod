@@ -25,6 +25,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -298,6 +299,20 @@ public class CaptureRod extends JavaPlugin implements Listener {
 
         // スタンしているプレイヤーは、何もできないようにする
         if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
+            event.setCancelled(true);
+            return;
+        }
+    }
+
+    /**
+     * エンティティがエンティティに攻撃した時のイベント
+     * @param event
+     */
+    @EventHandler
+    public void onAttack(EntityDamageByEntityEvent event) {
+
+        // スタンしているプレイヤーは、攻撃ができないようにする
+        if ( event.getDamager().hasMetadata(STAN_META_NAME) ) {
             event.setCancelled(true);
             return;
         }
