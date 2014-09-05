@@ -252,7 +252,9 @@ public class CaptureRod extends JavaPlugin implements Listener {
             }
 
             // 既にスタンしているなら、何もしない
-            if ( target.hasMetadata(STAN_META_NAME) ) {
+            Entity passenger = target.getPassenger();
+            if ( target.hasMetadata(STAN_META_NAME) &&
+                    passenger != null && passenger instanceof Fish ) {
                 player.sendMessage(ChatColor.RED + "already captured!!");
                 event.setCancelled(true);
                 return;
