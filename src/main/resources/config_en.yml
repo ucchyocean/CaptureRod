@@ -1,0 +1,21 @@
+# ${project.name} v${project.version}
+# @author     ucchy
+# @license    LGPLv3
+# @copyright  Copyright ucchy 2014
+
+# Capture range distance.
+# You can set this parameter 1 - 30.
+captureRange: 8
+
+# Enable crafting CaptureRod.
+enableCraft: true
+
+# CaptureRod wire length.
+wireLength: 3.0
+
+# CaptureRod wire tension.
+# If you set smaller value, wire tension will be stronger.
+wireTension: 5.0
+
+# CaptureRod durability cost per using.
+durabilityCost: 2

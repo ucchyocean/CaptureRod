@@ -243,13 +243,25 @@ public class CaptureRod extends JavaPlugin implements Listener {
         if ( event.getState() == State.FISHING ) {
             // 針を投げるときの処理
 
-            // 向いている方向のLivingEntityを取得し、その中にフックをワープさせる
-            LivingEntity target = hookTargetLivingEntity(player, hook, config.getCaptureRange());
+            // 向いている方向のLivingEntityを取得する
+            LivingEntity target = hookTargetLivingEntity(player, config.getCaptureRange());
             if ( target == null ) {
                 player.sendMessage(ChatColor.RED + "target not found!!");
                 event.setCancelled(true);
                 return;
             }
+
+            // 既にスタンしているなら、何もしない
+            if ( target.hasMetadata(STAN_META_NAME) ) {
+                player.sendMessage(ChatColor.RED + "already captured!!");
+                event.setCancelled(true);
+                return;
+            }
+
+            // 見つかったLivingEntityに針を載せる
+            hook.teleport(target);
+            target.setPassenger(hook);
+            target.damage(0F, player);
 
             // 耐久度を消耗させる
             if ( config.getDurabilityCost() > 0 ) {
@@ -322,12 +334,11 @@ public class CaptureRod extends JavaPlugin implements Listener {
      * プレイヤーが向いている方向にあるLivingEntityを取得し、
      * 釣り針をそこに移動する。
      * @param player プレイヤー
-     * @param hook 釣り針
      * @param size 取得する最大距離、140以上を指定しないこと
      * @return プレイヤーが向いている方向にあるLivingEntity。
      *         取得できない場合はnullがかえされる。
      */
-    private static LivingEntity hookTargetLivingEntity(Player player, Fish hook, int range) {
+    private static LivingEntity hookTargetLivingEntity(Player player, int range) {
 
         // ターゲット先周辺のエンティティを取得する
         Location center = player.getLocation().clone();
@@ -355,12 +366,7 @@ public class CaptureRod extends JavaPlugin implements Listener {
             } else {
                 // 位置が一致するLivingEntityがないか探す
                 for ( LivingEntity le : targets ) {
-                    Location location = le.getLocation();
                     if ( block.getLocation().distanceSquared(le.getLocation()) <= 4.0 ) {
-                        // LivingEntityが見つかった、針を載せる
-                        hook.teleport(location);
-                        le.setPassenger(hook);
-                        le.damage(0F, player);
                         // 見つかったLivingEntityを返す
                         return le;
                     }

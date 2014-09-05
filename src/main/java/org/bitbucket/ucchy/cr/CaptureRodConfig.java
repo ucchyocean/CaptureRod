@@ -53,8 +53,11 @@ public class CaptureRodConfig {
 
         File file = new File(parent.getDataFolder(), "config.yml");
         if ( !file.exists() ) {
-            copyFileFromJar(
-                    parent.getJarFile(), file, "config_ja.yml", false);
+            String configFileName = "config_en.yml";
+            if ( System.getProperty("user.language").equals("ja") ) {
+                configFileName = "config_ja.yml";
+            }
+            copyFileFromJar(parent.getJarFile(), file, configFileName, false);
         }
 
         parent.reloadConfig();
