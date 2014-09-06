@@ -6,6 +6,7 @@
 package org.bitbucket.ucchy.cr;
 
 import org.bukkit.Effect;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Fish;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -108,6 +109,11 @@ public class StanEffectTask extends BukkitRunnable {
                 PotionEffectType.SLOW, 5, 10, true), true);
         le.addPotionEffect(new PotionEffect(
                 PotionEffectType.JUMP, 5, -10, true), true);
+
+        // 飛行を許可する
+        if ( le instanceof Player ) {
+            ((Player)le).setAllowFlight(true);
+        }
     }
 
     /**
@@ -121,6 +127,14 @@ public class StanEffectTask extends BukkitRunnable {
         // メタデータを除去する
         le.removeMetadata(CaptureRod.STAN_META_NAME, plugin);
         le.setFallDistance(0);
+
+        // 飛行を禁止する
+        if ( le instanceof Player ) {
+            Player player = (Player)le;
+            if ( player.getGameMode() != GameMode.CREATIVE ) {
+                player.setAllowFlight(false);
+            }
+        }
     }
 
     /**

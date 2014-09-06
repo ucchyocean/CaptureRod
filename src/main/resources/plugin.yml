@@ -10,8 +10,8 @@ commands:
     description: ${project.description}
     aliases: [cap]
     usage: |
-           /<command> get [level] - Get new CaptureRod.
-           /<command> give (player) [level] - Give new CaptureRod.
+           /<command> get - Get new CaptureRod.
+           /<command> give (player) - Give new CaptureRod.
            /<command> reload - Reload config.yml.
     permission: capturerod.command
     permission-message: You don't have permission "<permission>".

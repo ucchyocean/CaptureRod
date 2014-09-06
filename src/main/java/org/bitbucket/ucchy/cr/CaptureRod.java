@@ -31,6 +31,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -328,6 +329,23 @@ public class CaptureRod extends JavaPlugin implements Listener {
         // スタンしているプレイヤーは、攻撃ができないようにする
         if ( event.getDamager().hasMetadata(STAN_META_NAME) ) {
             event.setCancelled(true);
+            return;
+        }
+    }
+
+    /**
+     * プレイヤーが飛行モードに入るときのイベント
+     * @param event
+     */
+    @EventHandler
+    public void onToggleFlight(PlayerToggleFlightEvent event) {
+
+        // スタンしているプレイヤーは、飛行モードに入れないようにする
+        if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
+            event.getPlayer().setFlying(false);
+            if ( event.isFlying() ) {
+                event.setCancelled(true);
+            }
             return;
         }
     }
