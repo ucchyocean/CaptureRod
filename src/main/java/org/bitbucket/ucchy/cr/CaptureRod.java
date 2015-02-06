@@ -31,6 +31,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -347,6 +348,19 @@ public class CaptureRod extends JavaPlugin implements Listener {
                 event.setCancelled(true);
             }
             return;
+        }
+    }
+
+    /**
+     * プレイヤーがサーバーを退出するときのイベント
+     * @param event
+     */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+
+        // メタデータが残っている場合は、削除しておく。
+        if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
+            event.getPlayer().removeMetadata(STAN_META_NAME, this);
         }
     }
 
