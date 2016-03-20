@@ -672,18 +672,7 @@ public enum SoundEnum {
      * @return BukkitのSound
      */
     public Sound getBukkit() {
-        if ( Utility.isCB19orLater() ) return Sound.valueOf(v18name);
-        return Sound.valueOf(v19name);
-    }
-
-    /**
-     * BukkitのSoundを取得します。
-     * @param def 取得できなかったときに返すデフォルト
-     * @return BukkitのSound
-     */
-    public Sound getBukkit(Sound def) {
-        if ( Utility.isCB19orLater() ) return getSound(v18name, def);
-        return getSound(v19name, def);
+        return getBukkit((Sound)null);
     }
 
     /**
@@ -692,8 +681,17 @@ public enum SoundEnum {
      * @return BukkitのSound
      */
     public Sound getBukkit(SoundEnum def) {
-        if ( Utility.isCB19orLater() ) return getSound(v18name, def.getBukkit());
-        return getSound(v19name, def.getBukkit());
+        return getBukkit(def.getBukkit());
+    }
+
+    /**
+     * BukkitのSoundを取得します。
+     * @param def 取得できなかったときに返すデフォルト
+     * @return BukkitのSound
+     */
+    public Sound getBukkit(Sound def) {
+        if ( Utility.isCB19orLater() ) return getSound(v19name, def);
+        return getSound(v18name, def);
     }
 
     /**
@@ -702,10 +700,7 @@ public enum SoundEnum {
      * @return SoundEnum
      */
     public static SoundEnum getFromString(String str) {
-        for ( SoundEnum sound : values() ) {
-            if ( sound.name().equalsIgnoreCase(str) ) return sound;
-        }
-        return null;
+        return getFromString(str, null);
     }
 
     /**
@@ -715,10 +710,23 @@ public enum SoundEnum {
      * @return SoundEnum
      */
     public static SoundEnum getFromString(String str, SoundEnum def) {
+        if ( str == null ) return null;
         for ( SoundEnum sound : values() ) {
             if ( sound.name().equalsIgnoreCase(str) ) return sound;
         }
         return def;
+    }
+
+    /**
+     * 指定した名前に一致するSoundを取得します。
+     * @param str サウンド名
+     * @return Sound
+     */
+    public static Sound getSoundFromString(String str) {
+        if ( str == null ) return null;
+        SoundEnum se = getFromString(str, null);
+        if ( se != null ) return se.getBukkit();
+        return null;
     }
 
     /**
@@ -728,6 +736,7 @@ public enum SoundEnum {
      * @return Sound
      */
     private Sound getSound(String src, Sound def) {
+        if ( src == null || src.equals("") ) return def;
         for ( Sound s : Sound.values() ) {
             if ( s.name().equalsIgnoreCase(src) ) {
                 return s;
