@@ -7,7 +7,7 @@ package org.bitbucket.ucchy.cr;
 
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Fish;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -23,7 +23,7 @@ import org.bukkit.util.Vector;
 public class StanEffectTask extends BukkitRunnable {
 
     private CaptureRod plugin;
-    private Fish hook;
+    private FishHook hook;
     private LivingEntity le;
     private Player owner;
     private boolean running;
@@ -35,7 +35,7 @@ public class StanEffectTask extends BukkitRunnable {
      * @param le
      * @param owner
      */
-    public StanEffectTask(CaptureRod plugin, Fish hook, LivingEntity le, Player owner) {
+    public StanEffectTask(CaptureRod plugin, FishHook hook, LivingEntity le, Player owner) {
         this.plugin = plugin;
         this.hook = hook;
         this.le = le;

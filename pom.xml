@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.bitbucket.ucchy</groupId>
   <artifactId>CaptureRod</artifactId>
-  <version>1.0.2</version>
+  <version>1.1.0</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,9 +69,9 @@
       <url>http://repo.bukkit.org/content/groups/public</url>
     </repository>
     <repository>
-      <id>ucchy-github</id>
-      <name>ucchy github repository</name>
-      <url>https://raw.github.com/ucchyocean/mvn-repo/master</url>
+      <id>spigot-repo</id>
+      <name>Spigot Maven Repository</name>
+      <url>https://hub.spigotmc.org/nexus/content/groups/public</url>
     </repository>
   </repositories>
 
@@ -79,12 +79,7 @@
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.7.9-R0.2-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.ucchyocean</groupId>
-      <artifactId>ColorTeaming</artifactId>
-      <version>2.2.11</version>
+      <version>1.9-R0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

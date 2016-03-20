@@ -6,51 +6,29 @@
 package org.bitbucket.ucchy.cr;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Fish;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerFishEvent.State;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.BlockIterator;
 
 /**
  * キャプチャロッド
  * @author ucchy
  */
-public class CaptureRod extends JavaPlugin implements Listener {
+public class CaptureRod extends JavaPlugin {
 
     private static final String NAME = "capturerod";
-    private static final String DISPLAY_NAME = NAME;
-    private static final String PERMISSION = NAME + ".";
-
+    protected static final String DISPLAY_NAME = NAME;
+    protected static final String PERMISSION = NAME + ".";
     protected static final String STAN_META_NAME = "capturerodstan";
 
     private ItemStack item;
@@ -63,9 +41,16 @@ public class CaptureRod extends JavaPlugin implements Listener {
      */
     public void onEnable() {
 
+        // サーバーのバージョンが v1.7.10 以前なら、プラグインを停止して動作しない。
+        if ( !Utility.isCB18orLater() ) {
+            getLogger().warning("This plugin needs to run on Bukkit 1.8 or later version.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         config = new CaptureRodConfig(this);
 
-        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new CaptureRodListener(), this);
 
         item = new ItemStack(Material.FISHING_ROD, 1);
         ItemMeta capturerodMeta = item.getItemMeta();
@@ -74,22 +59,6 @@ public class CaptureRod extends JavaPlugin implements Listener {
 
         if ( config.isEnableCraft() ) {
             makeRecipe();
-        }
-
-        // ColorTeaming のロード
-        Plugin colorteaming = null;
-        if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
-            colorteaming = getServer().getPluginManager().getPlugin("ColorTeaming");
-            String ctversion = colorteaming.getDescription().getVersion();
-            if ( isUpperVersion(ctversion, "2.2.5") ) {
-                getLogger().info("ColorTeaming was loaded. "
-                        + getDescription().getName() + " is in cooperation with ColorTeaming.");
-                ColorTeamingBridge bridge = new ColorTeamingBridge(colorteaming);
-                bridge.registerItem(item, NAME, DISPLAY_NAME);
-            } else {
-                getLogger().warning("ColorTeaming was too old. The cooperation feature will be disabled.");
-                getLogger().warning("NOTE: Please use ColorTeaming v2.2.5 or later version.");
-            }
         }
     }
 
@@ -213,241 +182,10 @@ public class CaptureRod extends JavaPlugin implements Listener {
     private void giveRod(Player player) {
 
         ItemStack rod = getRod();
-        ItemStack temp = player.getItemInHand();
-        player.setItemInHand(rod);
-        if ( temp != null ) {
+        ItemStack temp = getItemInHand(player);
+        setItemInHand(player, rod);
+        if ( temp != null && item.getType() != Material.AIR ) {
             player.getInventory().addItem(temp);
-        }
-    }
-
-    /**
-     * ロッドの針を投げたときに呼び出されるメソッド
-     * @param event
-     */
-    @EventHandler
-    public void onHook(PlayerFishEvent event) {
-
-        final Player player = event.getPlayer();
-        final Fish hook = event.getHook();
-
-        // パーミッションが無いなら何もしない
-        if ( !player.hasPermission(PERMISSION + "action") ) return;
-
-        // 手に持っているアイテムがロッドでないなら、何もしない
-        ItemStack rod = player.getItemInHand();
-        if ( rod == null ||
-                rod.getType() == Material.AIR ||
-                !rod.getItemMeta().hasDisplayName() ||
-                !rod.getItemMeta().getDisplayName().equals(DISPLAY_NAME) ) {
-            return;
-        }
-
-        if ( event.getState() == State.FISHING ) {
-            // 針を投げるときの処理
-
-            // 向いている方向のLivingEntityを取得する
-            LivingEntity target = hookTargetLivingEntity(player, config.getCaptureRange());
-            if ( target == null ) {
-                player.sendMessage(ChatColor.RED + "target not found!!");
-                event.setCancelled(true);
-                return;
-            }
-
-            // 既にスタンしているなら、何もしない
-            Entity passenger = target.getPassenger();
-            if ( target.hasMetadata(STAN_META_NAME) &&
-                    passenger != null && passenger instanceof Fish ) {
-                player.sendMessage(ChatColor.RED + "already captured!!");
-                event.setCancelled(true);
-                return;
-            }
-
-            // 見つかったLivingEntityに針を載せる
-            hook.teleport(target);
-            target.setPassenger(hook);
-            target.damage(0F, player);
-
-            // 耐久度を消耗させる
-            if ( config.getDurabilityCost() > 0 ) {
-                short durability = rod.getDurability();
-                durability += config.getDurabilityCost();
-                if ( durability >= rod.getType().getMaxDurability() ) {
-                    player.setItemInHand(null);
-                    updateInventory(player);
-                    player.getWorld().playSound(
-                            player.getLocation(), Sound.ITEM_BREAK, 1, 1);
-                } else {
-                    rod.setDurability(durability);
-                }
-            }
-
-            // 対象をスタンさせる
-            StanEffectTask task = new StanEffectTask(this, hook, target, player);
-            task.startTask();
-
-            // エフェクト
-            hook.getWorld().playEffect(hook.getLocation(), Effect.POTION_BREAK, 21);
-            hook.getWorld().playEffect(hook.getLocation(), Effect.POTION_BREAK, 21);
-
-        }
-    }
-
-    /**
-     * エンティティがダメージを受けたときのイベント
-     * @param event
-     */
-    @EventHandler
-    public void onDamage(EntityDamageEvent event) {
-
-        // 落下ダメージで、ダメージ保護用のメタデータを持っているなら、ダメージから保護する
-        if ( event.getCause() == DamageCause.FALL &&
-                event.getEntity().hasMetadata(STAN_META_NAME) ) {
-            event.setCancelled(true);
-        }
-    }
-
-    /**
-     * プレイヤーがクリックした時のイベント
-     * @param event
-     */
-    @EventHandler
-    public void onInteract(PlayerInteractEvent event) {
-
-        // スタンしているプレイヤーは、何もできないようにする
-        if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
-            event.setCancelled(true);
-            return;
-        }
-    }
-
-    /**
-     * エンティティがエンティティに攻撃した時のイベント
-     * @param event
-     */
-    @EventHandler
-    public void onAttack(EntityDamageByEntityEvent event) {
-
-        // スタンしているプレイヤーは、攻撃ができないようにする
-        if ( event.getDamager().hasMetadata(STAN_META_NAME) ) {
-            event.setCancelled(true);
-            return;
-        }
-    }
-
-    /**
-     * プレイヤーが飛行モードに入るときのイベント
-     * @param event
-     */
-    @EventHandler
-    public void onToggleFlight(PlayerToggleFlightEvent event) {
-
-        // スタンしているプレイヤーは、飛行モードに入れないようにする
-        if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
-            event.getPlayer().setFlying(false);
-            if ( event.isFlying() ) {
-                event.setCancelled(true);
-            }
-            return;
-        }
-    }
-
-    /**
-     * プレイヤーがサーバーを退出するときのイベント
-     * @param event
-     */
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-
-        // メタデータが残っている場合は、削除しておく。
-        if ( event.getPlayer().hasMetadata(STAN_META_NAME) ) {
-            event.getPlayer().removeMetadata(STAN_META_NAME, this);
-        }
-    }
-
-    /**
-     * プレイヤーが向いている方向にあるLivingEntityを取得し、
-     * 釣り針をそこに移動する。
-     * @param player プレイヤー
-     * @param size 取得する最大距離、140以上を指定しないこと
-     * @return プレイヤーが向いている方向にあるLivingEntity。
-     *         取得できない場合はnullがかえされる。
-     */
-    private static LivingEntity hookTargetLivingEntity(Player player, int range) {
-
-        // ターゲット先周辺のエンティティを取得する
-        Location center = player.getLocation().clone();
-        double halfrange = (double)range / 2.0;
-        center.add(center.getDirection().multiply(halfrange));
-        Entity orb = center.getWorld().spawnEntity(center, EntityType.EXPERIENCE_ORB);
-        ArrayList<LivingEntity> targets = new ArrayList<LivingEntity>();
-        for ( Entity e : orb.getNearbyEntities(halfrange, halfrange, halfrange) ) {
-            if ( e instanceof LivingEntity && !player.equals(e) ) {
-                targets.add((LivingEntity)e);
-            }
-        }
-        orb.remove();
-
-        // 視線の先にあるブロックを取得する
-        BlockIterator it = new BlockIterator(player, range);
-
-        while ( it.hasNext() ) {
-            Block block = it.next();
-
-            if ( block.getType() != Material.AIR ) {
-                // ブロックが見つかった(遮られている)、処理を終わってnullを返す
-                return null;
-
-            } else {
-                // 位置が一致するLivingEntityがないか探す
-                for ( LivingEntity le : targets ) {
-                    if ( block.getLocation().distanceSquared(le.getLocation()) <= 4.0 ) {
-                        // 見つかったLivingEntityを返す
-                        return le;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 指定されたバージョンが、基準より新しいバージョンかどうかを確認する<br>
-     * 完全一致した場合もtrueになることに注意。
-     * @param version 確認するバージョン
-     * @param border 基準のバージョン
-     * @return 基準より確認対象の方が新しいバージョンかどうか
-     */
-    private boolean isUpperVersion(String version, String border) {
-
-        String[] versionArray = version.split("\\.");
-        int[] versionNumbers = new int[versionArray.length];
-        for ( int i=0; i<versionArray.length; i++ ) {
-            if ( !versionArray[i].matches("[0-9]+") )
-                return false;
-            versionNumbers[i] = Integer.parseInt(versionArray[i]);
-        }
-
-        String[] borderArray = border.split("\\.");
-        int[] borderNumbers = new int[borderArray.length];
-        for ( int i=0; i<borderArray.length; i++ ) {
-            if ( !borderArray[i].matches("[0-9]+") )
-                return false;
-            borderNumbers[i] = Integer.parseInt(borderArray[i]);
-        }
-
-        int index = 0;
-        while ( (versionNumbers.length > index) && (borderNumbers.length > index) ) {
-            if ( versionNumbers[index] > borderNumbers[index] ) {
-                return true;
-            } else if ( versionNumbers[index] < borderNumbers[index] ) {
-                return false;
-            }
-            index++;
-        }
-        if ( borderNumbers.length == index ) {
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -471,6 +209,34 @@ public class CaptureRod extends JavaPlugin implements Listener {
     }
 
     /**
+     * プレイヤーが手（メインハンド）に持っているアイテムを取得します。
+     * @param player プレイヤー
+     * @return 手に持っているアイテム
+     */
+    @SuppressWarnings("deprecation")
+    private static ItemStack getItemInHand(Player player) {
+        if ( Utility.isCB19orLater() ) {
+            return player.getInventory().getItemInMainHand();
+        } else {
+            return player.getItemInHand();
+        }
+    }
+
+    /**
+     * 指定したプレイヤーの手に持っているアイテムを設定します。
+     * @param player プレイヤー
+     * @param item アイテム
+     */
+    @SuppressWarnings("deprecation")
+    private static void setItemInHand(Player player, ItemStack item) {
+        if ( Utility.isCB19orLater() ) {
+            player.getInventory().setItemInMainHand(item);
+        } else {
+            player.setItemInHand(item);
+        }
+    }
+
+    /**
      * このプラグインのjarファイルを返す
      * @return
      */
@@ -480,9 +246,17 @@ public class CaptureRod extends JavaPlugin implements Listener {
 
     /**
      * このプラグインのコンフィグファイルを返す
-     * @return
+     * @return コンフィグファイル
      */
     protected CaptureRodConfig getCaptureRodConfig() {
         return config;
+    }
+
+    /**
+     * このプラグインのインスタンスを返す
+     * @return インスタンス
+     */
+    protected static CaptureRod getInstance() {
+        return (CaptureRod)Bukkit.getPluginManager().getPlugin("CaptureRod");
     }
 }

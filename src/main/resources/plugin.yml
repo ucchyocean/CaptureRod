@@ -3,7 +3,6 @@ main: org.bitbucket.ucchy.cr.CaptureRod
 version: ${project.version}
 author: ucchy
 description: ${project.description}
-softdepend: [ColorTeaming]
 
 commands:
   capturerod:

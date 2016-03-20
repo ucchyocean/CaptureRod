@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -54,7 +55,7 @@ public class CaptureRodConfig {
         File file = new File(parent.getDataFolder(), "config.yml");
         if ( !file.exists() ) {
             String configFileName = "config_en.yml";
-            if ( System.getProperty("user.language").equals("ja") ) {
+            if ( getDefaultLocaleLanguage().startsWith("ja") ) {
                 configFileName = "config_ja.yml";
             }
             copyFileFromJar(parent.getJarFile(), file, configFileName, false);
@@ -116,7 +117,13 @@ public class CaptureRodConfig {
 
             } else {
                 reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                writer = new BufferedWriter(new OutputStreamWriter(fos));
+
+                // CB190以降は、書き出すファイルエンコードにUTF-8を強制する。
+                if ( Utility.isCB19orLater() ) {
+                    writer = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+                } else {
+                    writer = new BufferedWriter(new OutputStreamWriter(fos));
+                }
 
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -197,5 +204,15 @@ public class CaptureRodConfig {
      */
     public int getDurabilityCost() {
         return durabilityCost;
+    }
+
+    /**
+     * 動作環境の言語設定を取得する。日本語環境なら ja、英語環境なら en が返される。
+     * @return 動作環境の言語
+     */
+    private static String getDefaultLocaleLanguage() {
+        Locale locale = Locale.getDefault();
+        if ( locale == null ) return "en";
+        return locale.getLanguage();
     }
 }
